@@ -7,50 +7,33 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            artifact_name: Rekaren-Windows
-            output_path: dist/Rekaren.exe
-          - os: macos-13   # äldre, stödjer macOS 11+
-            artifact_name: Rekaren-macOS
-            output_path: Rekaren.dmg
-
-    runs-on: ${{ matrix.os }}
-
+  build-windows:
+    runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
-      - name: Install PyInstaller
-        run: python -m pip install --upgrade pip pyinstaller
-
-      - name: Build app (Windows)
-        if: matrix.os == 'windows-latest'
-        run: python -m PyInstaller --onefile --windowed --name Rekaren --icon=rekaren.ico rekaren.py
-
-      - name: Build app (macOS - universal2)
-        if: matrix.os == 'macos-latest'
-        run: |
-          python -m PyInstaller --onefile --windowed --name Rekaren rekaren.py
-          # Skapa universal binary manuellt
-          lipo -info dist/Rekaren.app/Contents/MacOS/Rekaren
-
-      - name: Package macOS .app into .dmg
-        if: matrix.os == 'macos-latest'
-        run: |
-          hdiutil create -volname "Rekaren" -srcfolder dist/Rekaren.app -ov -format UDZO Rekaren.dmg
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - run: python -m pip install --upgrade pip pyinstaller
+      - run: python -m PyInstaller --onefile --windowed --name Rekaren --icon=rekaren.ico rekaren.py
+      - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.output_path }}
+          name: Rekaren-Windows
+          path: dist/Rekaren.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --upgrade pip pyinstaller
+      - name: Build universal2
+        run: python -m PyInstaller --onefile --windowed --name Rekaren --target-arch universal2 rekaren.py
+      - name: Create DMG
+        run: hdiutil create -volname "Rekaren" -srcfolder dist/Rekaren.app -ov -format UDZO Rekaren.dmg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Rekaren-macOS
+          path: Rekaren.dmg
