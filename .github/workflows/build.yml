@@ -37,9 +37,12 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: python -m PyInstaller --onefile --windowed --name Rekaren --icon=rekaren.ico rekaren.py
 
-      - name: Build app (macOS)
+      - name: Build app (macOS - universal2)
         if: matrix.os == 'macos-latest'
-        run: python -m PyInstaller --onefile --windowed --name Rekaren rekaren.py
+        run: |
+          python -m PyInstaller --onefile --windowed --name Rekaren rekaren.py
+          # Skapa universal binary manuellt
+          lipo -info dist/Rekaren.app/Contents/MacOS/Rekaren
 
       - name: Package macOS .app into .dmg
         if: matrix.os == 'macos-latest'
