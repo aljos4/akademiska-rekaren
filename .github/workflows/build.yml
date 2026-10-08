@@ -15,7 +15,7 @@ jobs:
           - os: windows-latest
             artifact_name: Rekaren-Windows
             output_path: dist/Rekaren.exe
-          - os: macos-latest
+          - os: macos-13   # äldre, stödjer macOS 11+
             artifact_name: Rekaren-macOS
             output_path: Rekaren.dmg
 
